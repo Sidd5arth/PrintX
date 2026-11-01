@@ -100,7 +100,11 @@ jobs:
   deploy:
     name: Deploy to Kubernetes
     needs: [docker]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Skips when KUBE_CONFIG is unset (no cluster yet). Images still build/push.
+    if: >
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      secrets.KUBE_CONFIG != ''
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -110,11 +114,17 @@ jobs:
       - name: Configure kubeconfig
         run: |
           mkdir -p ~/.kube
+          if [ -z "${{ secrets.KUBE_CONFIG }}" ]; then
+            echo "::error::Secret KUBE_CONFIG is empty. Add a base64-encoded kubeconfig for your cluster."
+            exit 1
+          fi
           echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
+          if ! kubectl cluster-info; then
+            echo "::error::kubectl cannot reach the cluster. Check that KUBE_CONFIG is valid base64 of a working kubeconfig."
+            exit 1
+          fi
       - name: Apply manifests
-        env:
-          IMAGE_TAG: ${{ github.sha }}
         run: |
           SHA_SHORT="${GITHUB_SHA::7}"
           OWNER="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
