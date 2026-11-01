@@ -8,8 +8,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/printx-backend
-  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/printx-frontend
 
 jobs:
   backend:
@@ -75,24 +73,29 @@ jobs:
       - name: Set image tags
         id: meta
         run: |
+          # GHCR/Docker require lowercase repository names
+          OWNER="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
           SHA_SHORT="${GITHUB_SHA::7}"
+          echo "owner=${OWNER}" >> "$GITHUB_OUTPUT"
           echo "tag=${SHA_SHORT}" >> "$GITHUB_OUTPUT"
+          echo "backend_image=ghcr.io/${OWNER}/printx-backend" >> "$GITHUB_OUTPUT"
+          echo "frontend_image=ghcr.io/${OWNER}/printx-frontend" >> "$GITHUB_OUTPUT"
       - name: Build & push backend
         uses: docker/build-push-action@v6
         with:
           context: ./backend
           push: true
           tags: |
-            ${{ env.BACKEND_IMAGE }}:${{ steps.meta.outputs.tag }}
-            ${{ env.BACKEND_IMAGE }}:latest
+            ${{ steps.meta.outputs.backend_image }}:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.backend_image }}:latest
       - name: Build & push frontend
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
           push: true
           tags: |
-            ${{ env.FRONTEND_IMAGE }}:${{ steps.meta.outputs.tag }}
-            ${{ env.FRONTEND_IMAGE }}:latest
+            ${{ steps.meta.outputs.frontend_image }}:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.frontend_image }}:latest
 
   deploy:
     name: Deploy to Kubernetes
@@ -114,7 +117,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           SHA_SHORT="${GITHUB_SHA::7}"
-          OWNER="${GITHUB_REPOSITORY_OWNER}"
+          OWNER="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
           sed -i "s|ghcr.io/EXAMPLE_ORG/printx-backend:latest|ghcr.io/${OWNER}/printx-backend:${SHA_SHORT}|g" k8s/backend-deployment.yaml
           sed -i "s|ghcr.io/EXAMPLE_ORG/printx-frontend:latest|ghcr.io/${OWNER}/printx-frontend:${SHA_SHORT}|g" k8s/frontend-deployment.yaml
           kubectl apply -f k8s/namespace.yaml
