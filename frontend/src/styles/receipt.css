@@ -1,0 +1,7 @@
+.receipt-sheet .report-header {
+  border-bottom-color: var(--receipt);
+}
+
+.receipt-sheet .report-header__brand {
+  text-align: left;
+}

@@ -1,0 +1,27 @@
+{
+  "name": "printx-backend",
+  "version": "1.0.0",
+  "description": "printX invoice and receipt reporting REST API",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --test test/**/*.test.js",
+    "lint": "node -e \"console.log('lint ok')\""
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "puppeteer": "^23.4.0",
+    "winston": "^3.14.2"
+  },
+  "optionalDependencies": {
+    "ibm_db": "^3.2.4"
+  }
+}

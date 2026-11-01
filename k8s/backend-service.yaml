@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: printx-backend
+  namespace: printx
+  labels:
+    app.kubernetes.io/name: printx-backend
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: printx-backend
+  ports:
+    - name: http
+      port: 4000
+      targetPort: http
+      protocol: TCP

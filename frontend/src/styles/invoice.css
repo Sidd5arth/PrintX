@@ -1,0 +1,7 @@
+.invoice-sheet .report-header {
+  border-bottom-color: var(--invoice);
+}
+
+.invoice-sheet .party-block h3 {
+  color: var(--invoice);
+}
